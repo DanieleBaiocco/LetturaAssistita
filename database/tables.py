@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import String, Integer, Text, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import String, Integer, Text, ForeignKey, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -13,7 +13,7 @@ class Parola(Base):
 
     nome: Mapped[str] = mapped_column(String(100), primary_key=True)
     categoria: Mapped[str] = mapped_column(String(50), default="undefined")
-    nome_accento: Mapped[str] = mapped_column(String(150))   # es. "żòtico"
+    nome_accento: Mapped[str] = mapped_column(String(150))
     origine: Mapped[str] = mapped_column(Text)
     coniugazione: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
@@ -23,8 +23,8 @@ class Parola(Base):
         cascade="all, delete-orphan"
     )
 
-    persone_associazioni: Mapped[list["Taccuino"]] = relationship(
-        "Taccuino",
+    occorrenze_salvate: Mapped[list["OccorrenzaSalvata"]] = relationship(
+        "OccorrenzaSalvata",
         back_populates="parola",
         cascade="all, delete-orphan"
     )
@@ -123,25 +123,57 @@ class Persona(Base):
     password: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(100))
 
-    parole_associazioni: Mapped[list["Taccuino"]] = relationship(
-        "Taccuino",
+    occorrenze_salvate: Mapped[list["OccorrenzaSalvata"]] = relationship(
+        "OccorrenzaSalvata",
         back_populates="persona",
         cascade="all, delete-orphan"
     )
 
+class Libro(Base):
+    __tablename__ = "libro"
 
-class Taccuino(Base):
-    __tablename__ = "taccuino"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    titolo: Mapped[str] = mapped_column(String(200))
+    autore: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+
+    occorrenze_salvate: Mapped[list["OccorrenzaSalvata"]] = relationship(
+        "OccorrenzaSalvata",
+        back_populates="libro",
+        cascade="all, delete-orphan"
+    )
+
+class OccorrenzaSalvata(Base):
+    __tablename__ = "occorrenza_salvata"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     username_persona: Mapped[str] = mapped_column(
         ForeignKey("persona.username", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True
+        nullable=False
     )
 
     nome_parola: Mapped[str] = mapped_column(
         ForeignKey("parola.nome", ondelete="CASCADE", onupdate="CASCADE"),
-        primary_key=True
+        nullable=False
     )
 
-    persona: Mapped["Persona"] = relationship("Persona", back_populates="parole_associazioni")
-    parola: Mapped["Parola"] = relationship("Parola", back_populates="persone_associazioni")
+    libro_id: Mapped[int] = mapped_column(
+        ForeignKey("libro.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False
+    )
+
+    frase_contesto: Mapped[str] = mapped_column(Text, nullable=False)
+
+    persona: Mapped["Persona"] = relationship("Persona", back_populates="occorrenze_salvate")
+    parola: Mapped["Parola"] = relationship("Parola", back_populates="occorrenze_salvate")
+    libro: Mapped["Libro"] = relationship("Libro", back_populates="occorrenze_salvate")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "username_persona",
+            "nome_parola",
+            "libro_id",
+            "frase_contesto",
+            name="uq_occorrenza_esatta"
+        ),
+    )
