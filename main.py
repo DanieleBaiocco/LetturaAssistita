@@ -1,4 +1,4 @@
-from services.scraper import scrape_treccani
+from services.scraper import scrape_treccani, scrape_treccani_multiple
 
 if __name__ == '__main__':
-  scrape_treccani("zotico", debug=True)
+  print(scrape_treccani("zotico").model_dump())

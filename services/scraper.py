@@ -4,11 +4,10 @@ from typing import Optional
 import requests
 from bs4 import BeautifulSoup
 
-from model.esempio import EsempioData
-from model.parola import ParolaData
-from model.punto import PuntoData
-from model.significato import SignificatoData
+from schemas.esempio import EsempioRead
 from schemas.parola import ParolaRead
+from schemas.punto import PuntoRead
+from schemas.significato import SignificatoRead
 
 DOT_TOKEN = "§DOT§"
 
@@ -546,7 +545,7 @@ def trova_paragrafo_definizione(soup: BeautifulSoup):
 # Scraper principale
 # =========================================================
 
-def scrape_treccani(parola: str, debug: bool = False) -> ParolaData:
+def scrape_treccani(parola: str) -> ParolaRead:
     url = f"https://www.treccani.it/vocabolario/{parola}"
     response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20, allow_redirects=True)
 
@@ -563,12 +562,12 @@ def scrape_treccani(parola: str, debug: bool = False) -> ParolaData:
     blocchi = parse_definizione_html(p_definizione)
 
     nome_fallback = estrai_nome_da_ps1(soup) or parola
-    parola_data = blocchi_to_parola_data(
+    parola_read = blocchi_to_parola_read(
         blocchi,
         nome_input_utente=parola,
         nome_fallback=nome_fallback
     )
-    return parola_data
+    return parola_read
 
 def scrape_treccani_multiple(parola: str) -> list[ParolaRead]:
     try:
