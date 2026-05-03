@@ -19,7 +19,9 @@ def get_db():
 
 """
     Vien fatta quando l'utente cerca una certa parola che ha visto durante la lettura.
-    Vengono ritornati tutti gli omonimi flaggati a True se sono nel DB, a False altrimenti
+    Vengono ritornati tutti gli omonimi flaggati a True se sono nel DB, a False altrimenti.
+    Avviene una ricerca verso Treccani (con successivo salvataggio nel DB) se la parola 
+    (con i suoi omonimi) non stava nel DB.
 """
 @app.get("/parola/{parola}")
 def get_parola(username: str, parola: str, db: Session = Depends(get_db)) -> list[ParolaRead]:
@@ -31,8 +33,8 @@ def get_parola(username: str, parola: str, db: Session = Depends(get_db)) -> lis
 
 """
     Vien fatta quando l'utente decide di aggiungere al proprio vocabolario personale
-    le parole. Questo vien fatto dopo get_parola(), nella richiesta ci sono le parole
-    in versione Treccani da aggiungere es. [palla1, palla2, palla3]  
+    gli omonimi di una parola. Questo metodo vien invocato dopo get_parola(); nella richiesta 
+    ci sono gli omonimi in versione Treccani da aggiungere es. [palla1, palla2, palla3]  
 """
 @app.post("/parole/associazioni", status_code=status.HTTP_204_NO_CONTENT)
 def add_associazione(

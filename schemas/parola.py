@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from schemas.punto import PuntoRead
 
 
-
 class ParolaBase(BaseModel):
     nome: str
     nome_accento: str
@@ -23,3 +22,7 @@ class ParolaRead(ParolaBase):
 
     class Config:
         from_attributes = True
+
+
+class ParolaReadWithDbStatus(ParolaRead):
+    presente_in_db: bool

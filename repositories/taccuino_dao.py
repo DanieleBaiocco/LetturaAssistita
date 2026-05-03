@@ -1,6 +1,6 @@
 from sqlalchemy import func
 
-from database.tables import Taccuino, Parola
+from database.tables import OccorrenzaSalvata, Parola
 
 
 class TaccuinoDAO:
@@ -18,10 +18,10 @@ class TaccuinoDAO:
             return 0
 
         return (
-                self.session.query(func.count(Taccuino.nome_parola))
+                self.session.query(func.count(OccorrenzaSalvata.nome_parola))
                 .filter(
-                    Taccuino.username_persona == username,
-                    Taccuino.nome_parola.in_(nomi_unici)
+                    OccorrenzaSalvata.username_persona == username,
+                    OccorrenzaSalvata.nome_parola.in_(nomi_unici)
                 )
                 .scalar()
                 or 0
@@ -34,9 +34,9 @@ class TaccuinoDAO:
     ) -> list[Parola]:
         return (
             self.session.query(Parola)
-            .join(Taccuino, Taccuino.nome_parola == Parola.nome)
+            .join(OccorrenzaSalvata, OccorrenzaSalvata.nome_parola == Parola.nome)
             .filter(
-                Taccuino.username_persona == username,
+                OccorrenzaSalvata.username_persona == username,
                 Parola.nome.startswith(nome_parola)
             )
             .all()
@@ -49,7 +49,7 @@ class TaccuinoDAO:
             nomi_parole: list[str]
     ) -> None:
         associazioni = [
-            Taccuino(username_persona=username, nome_parola=nome)
+            OccorrenzaSalvata(username_persona=username, nome_parola=nome)
             for nome in nomi_parole
         ]
         self.session.add_all(associazioni)
